@@ -5,9 +5,9 @@ class ProxyManager{
         this.proxies = proxiesInfo;
         this.selectedProxy = -1;
     }
-    testProxy(proxyUrl, request = request) {
+    testProxy(proxyInfo, testRequest = request) {
         return new Promise((resolve) => {
-            testRequest = request.defaults({ 'proxy': proxyUrl });
+            testRequest = request.defaults({ 'proxy': 'http://' + proxyInfo });
             testRequest.get('http://ip-api.com/json', (err, res, body) => {
                 try {
                     if (err) {
@@ -23,13 +23,13 @@ class ProxyManager{
     }
     async initProxies(){
         var requests = [];
-        var errors = {};
+        var errors = [];
         for (var i of this.proxies) {
-            try {
-                var result = await this.testProxy(i);
+            var result = await this.testProxy(i);
+            if (result.success){
                 requests.push(result.request);
-            } catch (err){
-               errors[i] = err;
+            } else {
+                errors.push(i);
             }
         }
         return {requests:requests, errors:errors};
@@ -61,3 +61,4 @@ class ProxyManager{
         }
     }
 };
+module.exports = ProxyManager;
